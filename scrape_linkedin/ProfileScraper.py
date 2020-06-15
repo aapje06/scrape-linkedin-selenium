@@ -5,6 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.webdriver.common.keys import Keys
 
 import time
 from .Profile import Profile
@@ -24,7 +25,7 @@ class ProfileScraper(Scraper):
             'https://www.linkedin.com/sales/gmail/profile/proxy/{}'.format(email))
         return self.get_profile()
 
-    def scrape(self, url='', user=None):
+    def scrape(self, url='', user=None, name=None):
         self.load_profile_page(url, user)
         return self.get_profile()
 
@@ -68,6 +69,61 @@ class ProfileScraper(Scraper):
                 'Profile Unavailable: Profile link does not match any current Linkedin Profiles')
         # Scroll to the bottom of the page incrementally to load any lazy-loaded content
         self.scroll_to_bottom()
+
+    
+    def search_profile(self, name):
+        """
+        Search for a name on linked in and get the list of profiles that match the name
+
+        Params:
+            - name {str}: The name that need to be looked up
+
+        Returns:
+            - urls {str[]}: List of the URLs that have matching profiles
+        Raises:
+            - ValueError: When no matching profiles are found
+        """
+
+        self.driver.get('http://www.linkedin.com/feed')
+        search_box = self.driver.find_element_by_css_selector(
+            'input.search-global-typeahead__input')
+        search_box.send_keys(name)
+        search_box.send_keys(Keys.ENTER)
+
+        try:
+            myElem = WebDriverWait(self.driver, self.timeout).until(AnyEC(
+                EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, self.MAIN_SELECTOR)),
+                EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, self.ERROR_SELECTOR))
+            ))
+        except TimeoutException as e:
+            raise ValueError(
+                """Took too long to load profile.  Common problems/solutions:
+                1. Invalid LI_AT value: ensure that yours is correct (they
+                   update frequently)
+                2. Slow Internet: increase the time out parameter in the Scraper
+                   constructor
+                3. Invalid e-mail address (or user does not allow e-mail scrapes) on scrape_by_email call
+                """)
+        # At this point page is loaded, not known if page is 
+        # check if there are any results
+        try:
+            self.driver.find_element_by_css_selector(self.MAIN_SELECTOR)
+        except:
+            raise ValueError(
+                'Name not found: Could not find a profile with the name: {}'.format(name))
+            
+        # list all the profiles to return
+        profiles = []
+        profile_elements = self.driver.find_elements_by_css_selector('div.search-results div.search-result')
+        for profile_element in profile_elements:
+            link_elem = profile_element.find_element_by_css_selector('a.search-result__result-link')
+            profiles.append(link_elem.get_attribute('href'))
+        return profiles
+        
+
+        
 
     def get_profile(self):
         try:

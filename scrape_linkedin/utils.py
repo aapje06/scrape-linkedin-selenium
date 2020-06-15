@@ -66,9 +66,28 @@ def text_or_default(element, selector, default=None):
     """Same as one_or_default, except it returns stripped text contents of the found element
     """
     try:
-        return element.select_one(selector).get_text().strip()
+        return cleanup_text(element.select_one(selector).get_text().strip())
     except Exception as e:
         return default
+
+
+def cleanup_text(text):
+    """ Cleans up text string that may be retrieved from the page
+    - removes double spaces
+    - removes literal \\n strings
+    - removes the see more and see less strings
+    - Strips the beginning and ending spaces
+    """
+    res = re.sub(r' {2,}', ' ',
+        text \
+        .replace('... see more', '') \
+        .replace('    see less', '') \
+        .replace('\n', ' ') \
+        .replace('\\n', ' ') \
+        .strip()
+        )
+    return res
+
 
 
 def all_or_default(element, selector, default=[]):
@@ -204,6 +223,6 @@ def get_skill_info(skill):
         dict of skill name and # of endorsements
     """
     return get_info(skill, {
-        'name': '.pv-skill-category-entity__name',
+        'name': '.pv-skill-category-entity__name-text',
         'endorsements': '.pv-skill-category-entity__endorsement-count'
     }, default=0)

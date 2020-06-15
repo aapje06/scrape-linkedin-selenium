@@ -41,7 +41,7 @@ class Scraper(object):
         self.scroll_increment = scroll_increment
         self.timeout = timeout
         self.driver.get('http://www.linkedin.com')
-        self.driver.set_window_size(1920, 1080)
+        # self.driver.set_window_size(1920, 1080)
 
         if 'LI_EMAIL' in environ and 'LI_PASS' in environ:
             self.login(environ['LI_EMAIL'], environ['LI_PASS'])
@@ -85,6 +85,7 @@ class Scraper(object):
             'button[aria-expanded="false"].pv-skills-section__additional-skills',
             'button[aria-expanded="false"].pv-profile-section__see-more-inline',
             'button[aria-expanded="false"].pv-top-card-section__summary-toggle-button',
+            'button[aria-expanded="false"].inline-show-more-text__button',
             'button[data-control-name="contact_see_more"]'
         ]
 

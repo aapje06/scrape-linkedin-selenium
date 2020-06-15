@@ -7,15 +7,16 @@ import re
 class Company(ResultsObject):
     """Linkedin User Profile Object"""
 
-    attributes = ['overview', 'jobs', 'life', 'insights']
+    attributes = ['overview', 'jobs', 'life', 'insights', 'people']
     # KD adds insights attribute
 
-    def __init__(self, overview, jobs, life, insights):
+    def __init__(self, overview, jobs, life, insights, people):
         # KD fixed attributes making jobs and life undefined as they are defined in CompanyScraper, and this allows insights to work
         self.overview_soup = BeautifulSoup(overview, 'html.parser')
         self.jobs_soup = BeautifulSoup(jobs, 'html.parser')
         self.life_soup = BeautifulSoup(life, 'html.parser')
         self.insights_soup = BeautifulSoup(insights, 'html.parser')
+        self.people_soup = BeautifulSoup(people, 'html.parser')
         # KD adds insights soup
 
     @property
@@ -31,13 +32,13 @@ class Company(ResultsObject):
             self.overview_soup, '.org-grid__core-rail--wide')
 
         overview = {}
-        overview['description'] = container.select_one(
-            'section > p').get_text().strip()
+        overview['description'] = cleanup_text(
+            container.select_one('section > p').get_text().strip())
 
         metadata_keys = container.select('.org-page-details__definition-term')
-        print(metadata_keys)
+        # print(metadata_keys)
         metadata_keys = [x for x in metadata_keys if "Company size" not in x.get_text()]
-        print(metadata_keys)
+        # print(metadata_keys)
         metadata_values = container.select(
             '.org-page-details__definition-text')
         overview.update(
@@ -50,7 +51,7 @@ class Company(ResultsObject):
             dict_val = val.get_text().strip()
             if "company_size" not in dict_key:
                 overview[dict_key] = dict_val
-        print(overview)
+        # print(overview)
 
         all_employees_links = all_or_default(
             banner, '.mt2 > a > span') # A fix to locate "See all ### employees on LinkedIn"
@@ -69,6 +70,11 @@ class Company(ResultsObject):
         logo_image_tag = one_or_default(
             banner, '.org-top-card-primary-content__logo')
         overview['image'] = logo_image_tag['src'] if logo_image_tag else ''
+
+
+        overview['specialties'] = overview['specialties'].split(', ')
+        overview['specialties'][-1] = overview['specialties'][-1].replace('and ', '')
+        
 
         return overview
 
@@ -97,3 +103,34 @@ class Company(ResultsObject):
 
         }))
         return insights
+
+
+    @property
+    def people(self):
+        people = {}
+        people['statistics'] = []
+
+        carrousel_tag = '.artdeco-carousel__item'
+
+        carousels = all_or_default(self.people_soup, carrousel_tag)
+
+        for carousel in carousels:
+            statistics = {}
+            carousel_text = cleanup_text(one_or_default(carousel, 'h4').get_text().strip())
+            statistics['statistic'] = carousel_text
+            statistics['data'] = []
+
+            elems = all_or_default(carousel, '.mt4')
+
+            for elem in elems:
+                elem_data = one_or_default(elem, '.mt2')
+                elem_number = one_or_default(elem_data, 'strong').get_text().strip().replace(',','')
+                elem_text = one_or_default(elem_data, 'span').get_text().strip()
+                data = {
+                    'label': elem_text,
+                    'amount': elem_number
+                }
+                statistics['data'].append(data)
+            people['statistics'].append(statistics)
+
+        return people

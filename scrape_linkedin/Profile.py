@@ -26,7 +26,7 @@ class Profile(ResultsObject):
         })
 
         personal_info['summary'] = text_or_default(
-            self.soup, '.pv-about-section .pv-about__summary-text', '').replace('... see more', '').strip()
+            self.soup, '.pv-about-section .pv-about__summary-text', '')
 
         image_url = ''
         # If this is not None, you were scraping your own profile.

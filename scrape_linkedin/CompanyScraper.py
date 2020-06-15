@@ -11,11 +11,18 @@ from .utils import AnyEC
 
 
 class CompanyScraper(Scraper):
-    def scrape(self, company, overview=True, jobs=False, life=False, insights=False):
+    def scrape(self, company=None, url=None, overview=True, jobs=False, life=False, insights=False, people=True):
+        # checking if or company or url is provided to construct the url
+        if company is None and url is None:
+            raise ValueError("Both company and URL argument are None when trying to scrape company.")
+        elif company is None:
+            self.url = 'https://www.linkedin.com/company/{}'.format(company)
+        else:
+            self.url = url
         # Get Overview
-        self.load_initial(company)
+        self.load_initial(url)
 
-        jobs_html = life_html = insights_html = overview_html = ''
+        jobs_html = life_html = insights_html = overview_html = people_html = ''
 
         if overview:
             overview_html = self.get_overview()
@@ -25,12 +32,12 @@ class CompanyScraper(Scraper):
             jobs_html = self.get_jobs()
         if insights:
             insights_html = self.get_insights()
+        if people:
+            people_html = self.get_people()
         #print("JOBS", jobs_html, "\n\n\n\n\nLIFE", life_html)
-        return Company(overview_html, jobs_html, life_html, insights_html)
+        return Company(overview_html, jobs_html, life_html, insights_html, people_html)
 
-    def load_initial(self, company):
-        url = 'https://www.linkedin.com/company/{}'.format(company)
-
+    def load_initial(self, url):
         self.driver.get(url)
         try:
             myElem = WebDriverWait(self.driver, self.timeout).until(AnyEC(
@@ -83,6 +90,21 @@ class CompanyScraper(Scraper):
                 'a[data-control-name="page_member_main_nav_jobs_tab"].active')
             return self.driver.find_element_by_css_selector('.org-jobs-container').get_attribute('outerHTML')
         except:
+            return ''
+
+
+    def get_people(self):
+        try:
+            tab_link = self.driver.find_element_by_css_selector(
+                'a[data-control-name="page_member_main_nav_people_tab"]')
+            tab_link.click()
+            # triggering on the carousel element itself to wait when the page is lazy loaded.
+            self.wait_for_el('ul.artdeco-carousel__slider')
+            self.wait_for_el('li.artdeco-carousel__item')
+            self.wait_for_el('div.artdeco-carousel__item-container')
+            return self.driver.find_element_by_css_selector('.org-people__insights-container').get_attribute('outerHTML')
+        except Exception as ex:
+            print('Error: Could not get people html:\n{}'.format(ex))
             return ''
 
     def get_insights(self):
