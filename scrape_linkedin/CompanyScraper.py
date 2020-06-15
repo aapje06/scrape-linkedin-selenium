@@ -28,13 +28,12 @@ class CompanyScraper(Scraper):
             overview_html = self.get_overview()
         if life:
             life_html = self.get_life()
-        if jobs:
-            jobs_html = self.get_jobs()
         if insights:
             insights_html = self.get_insights()
         if people:
             people_html = self.get_people()
-        #print("JOBS", jobs_html, "\n\n\n\n\nLIFE", life_html)
+        if jobs:
+            jobs_html = self.get_jobs()
         return Company(overview_html, jobs_html, life_html, insights_html, people_html)
 
     def load_initial(self, url):
@@ -86,10 +85,19 @@ class CompanyScraper(Scraper):
             tab_link = self.driver.find_element_by_css_selector(
                 'a[data-control-name="page_member_main_nav_jobs_tab"]')
             tab_link.click()
-            self.wait_for_el(
-                'a[data-control-name="page_member_main_nav_jobs_tab"].active')
-            return self.driver.find_element_by_css_selector('.org-jobs-container').get_attribute('outerHTML')
-        except:
+            self.wait_for_el('ul.artdeco-carousel__slider')
+            self.wait_for_el('li.artdeco-carousel__item')
+            self.wait_for_el('div.artdeco-carousel__item-container')
+            self.wait_for_el('a[data-control-name="see_all_jobs"]')
+            see_all_jobs_button = self.driver.find_element_by_css_selector(
+                'a[data-control-name="see_all_jobs"]'
+            )
+            see_all_jobs_button.click()
+            self.scroll_to_bottom()
+            job_list = self.wait_for_el('ul.jobs-search-results__list')
+            return job_list.get_attribute('outerHTML')
+        except Exception as ex:
+            print("Error while scraping jobs from company: [{}]\n{}".format(self.url, ex))
             return ''
 
 
