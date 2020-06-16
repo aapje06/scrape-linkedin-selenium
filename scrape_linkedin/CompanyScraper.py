@@ -15,12 +15,12 @@ class CompanyScraper(Scraper):
         # checking if or company or url is provided to construct the url
         if company is None and url is None:
             raise ValueError("Both company and URL argument are None when trying to scrape company.")
-        elif company is None:
-            self.url = 'https://www.linkedin.com/company/{}'.format(company)
+        elif company is not None:
+            self.url = 'https://www.linkedin.com/company/{}'.format(str(company).lower())
         else:
             self.url = url
         # Get Overview
-        self.load_initial(url)
+        self.load_initial(self.url)
 
         jobs_html = life_html = insights_html = overview_html = people_html = ''
 
