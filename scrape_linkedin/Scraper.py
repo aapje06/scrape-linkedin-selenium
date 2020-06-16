@@ -120,6 +120,7 @@ class Scraper(object):
             By.CSS_SELECTOR, selector
         )))
 
+
     def __enter__(self):
         return self
 

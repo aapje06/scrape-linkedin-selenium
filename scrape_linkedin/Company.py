@@ -32,8 +32,11 @@ class Company(ResultsObject):
             self.overview_soup, '.org-grid__core-rail--wide')
 
         overview = {}
-        overview['description'] = cleanup_text(
-            container.select_one('section > p').get_text().strip())
+        description_element = container.select_one('section > p')
+        if description_element is not None:
+            overview['description'] = cleanup_text(
+                description_element.get_text().strip())
+
 
         metadata_keys = container.select('.org-page-details__definition-term')
         # print(metadata_keys)
@@ -72,15 +75,35 @@ class Company(ResultsObject):
         overview['image'] = logo_image_tag['src'] if logo_image_tag else ''
 
 
-        overview['specialties'] = overview['specialties'].split(', ')
-        overview['specialties'][-1] = overview['specialties'][-1].replace('and ', '')
+        if 'specialties' in overview:
+            overview['specialties'] = overview['specialties'].split(', ')
+            overview['specialties'][-1] = overview['specialties'][-1].replace('and ', '')
         
 
         return overview
 
     @property
     def jobs(self):
-        return None
+        jobs = []
+        carousel =  one_or_default(self.jobs_soup, 'ul.jobs-search-results__list')
+        cards = all_or_default(carousel, 'li.artdeco-list__item')
+        for card in cards:
+            job = {}
+            url_elem = one_or_default(card, 'a.job-card-container__link.job-card-list__title')
+            if url_elem is not None:
+                job_title = cleanup_text(url_elem.get_text())
+                job_url = url_elem['href']
+                job['title'] = job_title
+                job['url'] = 'linkedin.com' + job_url
+            location_elem = one_or_default(card, 'div.artdeco-entity-lockup__caption')
+            if location_elem is not None:
+                job_location = cleanup_text(location_elem.get_text())
+                job['location'] = job_location
+            date_elem = one_or_default(card, 'div.job-card-container__footer-wrapper > time', default=None)
+            if date_elem is not None:
+                job['post_date'] = date_elem['datetime']
+            jobs.append(job)
+        return jobs
 
     @property
     def life(self):
