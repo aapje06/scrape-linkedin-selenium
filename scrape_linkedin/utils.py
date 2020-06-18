@@ -1,5 +1,6 @@
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.expected_conditions import _find_element
+from bs4 import BeautifulSoup
 
 import math
 import re
@@ -66,8 +67,9 @@ def text_or_default(element, selector, default=None):
     """Same as one_or_default, except it returns stripped text contents of the found element
     """
     try:
-        return cleanup_text(element.select_one(selector).get_text().strip())
+        return cleanup_text(element.select_one(selector).get_text(strip=True).strip())
     except Exception as e:
+        # print('Error [text_or_default]:\nSelector: {} \n{}'.format(selector, e))
         return default
 
 
@@ -88,6 +90,18 @@ def cleanup_text(text):
         )
     return res
 
+def text_or_default_no_children(element, selector, default=None):
+    """
+    Same as text_or_default, except, it returns only the selected items text, no childerens text.
+    """
+    try:
+        elem = one_or_default(element, selector)
+        text = elem.find_all(text=True, recursive=False)
+        text = ' '.join(text)
+        return cleanup_text(text)
+    except Exception as e:
+        print('Error [text_or_default_no_children]:\nSelector: {} \n{}'.format(selector, e))
+        return default
 
 
 def all_or_default(element, selector, default=[]):

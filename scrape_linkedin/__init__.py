@@ -6,3 +6,5 @@ from .Company import Company
 from .CompanyScraper import CompanyScraper
 from .ConnectionScraper import ConnectionScraper
 from .MyConnectionScraper import MyConnectionScraper
+from .Job import Job
+from .JobScraper import JobScraper
