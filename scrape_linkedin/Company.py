@@ -85,24 +85,33 @@ class Company(ResultsObject):
     @property
     def jobs(self):
         jobs = []
-        carousel =  one_or_default(self.jobs_soup, 'ul.jobs-search-results__list')
-        cards = all_or_default(carousel, 'li.artdeco-list__item')
-        for card in cards:
-            job = {}
-            url_elem = one_or_default(card, 'a.job-card-container__link.job-card-list__title')
-            if url_elem is not None:
-                job_title = cleanup_text(url_elem.get_text())
-                job_url = url_elem['href']
-                job['title'] = job_title
-                job['url'] = 'linkedin.com' + job_url
-            location_elem = one_or_default(card, 'div.artdeco-entity-lockup__caption')
-            if location_elem is not None:
-                job_location = cleanup_text(location_elem.get_text())
-                job['location'] = job_location
-            date_elem = one_or_default(card, 'div.job-card-container__footer-wrapper > time', default=None)
-            if date_elem is not None:
-                job['post_date'] = date_elem['datetime']
-            jobs.append(job)
+        carousels =  all_or_default(self.jobs_soup, 'ul.jobs-search-results__list')
+        for carousel in carousels:
+            cards = all_or_default(carousel, 'li.artdeco-list__item')
+            for card in cards:
+                job = {}
+                incomplete = False
+                url_elem = one_or_default(card, 'a.job-card-container__link.job-card-list__title')
+                if url_elem is not None:
+                    job_title = cleanup_text(url_elem.get_text())
+                    job_url = url_elem['href']
+                    job['title'] = job_title
+                    job['url'] = 'linkedin.com' + job_url
+                else:
+                    incomplete = True
+                location_elem = one_or_default(card, 'div.artdeco-entity-lockup__caption')
+                if location_elem is not None:
+                    job_location = cleanup_text(location_elem.get_text())
+                    job['location'] = job_location
+                else:
+                    incomplete = True
+                date_elem = one_or_default(card, 'div.job-card-container__footer-wrapper > time', default=None)
+                if date_elem is not None:
+                    job['post_date'] = date_elem['datetime']
+                else:
+                    incomplete = True
+                if not incomplete:
+                    jobs.append(job)
         return jobs
 
     @property

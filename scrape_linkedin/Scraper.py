@@ -73,6 +73,21 @@ class Scraper(object):
     def get_html(self, url):
         self.load_profile_page(url)
         return self.driver.page_source
+    
+    def scroll_to_bottom_element(self, element):
+        current_height = 0
+        while True:
+            # Scroll down to bottom
+            new_height = self.driver.execute_script(
+                "return Math.min({}, arguments[0].scrollHeight)".format(current_height + self.scroll_increment), element)
+            if (new_height == current_height):
+                break
+            self.driver.execute_script(
+                "arguments[0].scrollTo(0, Math.min({}, arguments[0].scrollHeight));".format(new_height), element)
+            current_height = new_height
+            # Wait to load page
+            time.sleep(self.scroll_pause)
+
 
     def scroll_to_bottom(self):
         """Scroll to the bottom of the page

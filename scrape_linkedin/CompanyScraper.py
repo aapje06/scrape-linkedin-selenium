@@ -11,7 +11,7 @@ from .utils import AnyEC
 
 
 class CompanyScraper(Scraper):
-    def scrape(self, company=None, url=None, overview=True, jobs=False, life=False, insights=False, people=True):
+    def scrape(self, company=None, url=None, overview=True, jobs=False, life=False, insights=False, people=True, max_job_pages_to_scrape=5):
         # checking if or company or url is provided to construct the url
         if company is None and url is None:
             raise ValueError("Both company and URL argument are None when trying to scrape company.")
@@ -23,6 +23,7 @@ class CompanyScraper(Scraper):
         self.load_initial(self.url)
 
         jobs_html = life_html = insights_html = overview_html = people_html = ''
+        self.max_job_pages_to_scrape = max_job_pages_to_scrape
 
         if overview:
             overview_html = self.get_overview()
@@ -53,6 +54,7 @@ class CompanyScraper(Scraper):
                 2. Slow Internet: increase the timeout parameter in the Scraper constructor""")
         try:
             self.driver.find_element_by_css_selector('.organization-outlet')
+            self.driver.find_element_by_css_selector('a[data-control-name="page_member_main_nav_home_tab"]')
         except:
             raise ValueError(
                 'Company Unavailable: Company link does not match any companies on LinkedIn')
@@ -93,9 +95,27 @@ class CompanyScraper(Scraper):
                 'a[data-control-name="see_all_jobs"]'
             )
             see_all_jobs_button.click()
-            self.scroll_to_bottom()
-            job_list = self.wait_for_el('ul.jobs-search-results__list')
-            return job_list.get_attribute('outerHTML')
+            job_list = self.wait_for_el('div.jobs-search-results')
+
+            counter = 1
+            output = ''
+            while True:
+                self.wait_for_el('li.artdeco-list__item')
+                job_list = self.wait_for_el('div.jobs-search-results')
+                self.scroll_to_bottom_element(job_list)
+                output += job_list.get_attribute('outerHTML')
+                counter += 1
+                if counter > self.max_job_pages_to_scrape:
+                    break
+                next_button_list_elem = self.driver.find_element_by_css_selector('ul.artdeco-pagination__pages')
+                try:
+                    next_button_elem = next_button_list_elem.find_element_by_css_selector('li[data-test-pagination-page-btn="{}"'.format(counter))
+                except:
+                    break
+                next_button_elem.click()
+
+            return output
+
         except Exception as ex:
             print("Error while scraping jobs from company: [{}]\n{}".format(self.url, ex))
             return ''

@@ -3,7 +3,7 @@ import json
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, WebDriverException
 from selenium.webdriver.common.keys import Keys
 
 import time
@@ -33,9 +33,13 @@ class JobScraper(Scraper):
         """
         if 'com/jobs/view/' not in url:
             raise ValueError(
-                "Url must look like... linkedin.com/jobs/view/<JOB_ID_CONTENT>")
+                "Url must look like... https://www.linkedin.com/jobs/view/<JOB_ID_CONTENT>")
 
-        self.driver.get(url)
+        try:
+            self.driver.get(url)
+        except WebDriverException as webEx:
+            raise ValueError("Could not fetch the requred page with the URL [{}] Probably wrong formatted URL. Error: {}".format(url, webEx))
+
         # Wait for page to load dynamically via javascript
         try:
             myElem = WebDriverWait(self.driver, self.timeout).until(AnyEC(
