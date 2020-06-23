@@ -7,4 +7,4 @@ from .CompanyScraper import CompanyScraper
 from .ConnectionScraper import ConnectionScraper
 from .MyConnectionScraper import MyConnectionScraper
 from .Job import Job
-from .JobScraper import JobScraper
+from .JobScraper import JobScraper, ExperienceLevel, JobType, DatePosted

@@ -128,13 +128,16 @@ class Scraper(object):
             # Wait to load page
             time.sleep(self.scroll_pause)
 
-    def wait(self, condition):
-        return WebDriverWait(self.driver, self.timeout).until(condition)
+    def wait(self, condition, timeout=None):
+        if timeout is not None:
+            return WebDriverWait(self.driver, timeout).until(condition)
+        else:
+            return WebDriverWait(self.driver, self.timeout).until(condition)
 
-    def wait_for_el(self, selector):
+    def wait_for_el(self, selector, timeout=None):
         return self.wait(EC.presence_of_element_located((
             By.CSS_SELECTOR, selector
-        )))
+        )), timeout)
 
 
     def __enter__(self):
