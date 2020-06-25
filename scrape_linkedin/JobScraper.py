@@ -25,6 +25,10 @@ class JobType(Enum):
     FULLTIME='Full-time'
     TEMPORARY='Temporary'
     CONTRACT='Contract'
+    INTERNSHIP='Internship'
+    PARTTIME='Part-time'
+    OTHER='Other'
+    VOLUNTEER='Volunteer'
 
 class DatePosted(Enum):
     PAST_DAY='Past 24 hours'
@@ -40,13 +44,17 @@ class JobScraper(Scraper):
     MAIN_SELECTOR = '.core-rail'
     ERROR_SELECTOR = '.not-found-404'
 
-    def search_jobs_scrape(self, description, location=None, experience_level=None, job_type=None, date_posted=None, max_number_of_pages=5):
-        self.max_job_pages_to_scrape = max_number_of_pages
+    def search_jobs_scrape(self, description=None, location=None, experience_level=None, job_type=None, date_posted=None, max_number_of_pages=5):
+        self.max_job_pages_to_scrape = 5
+        if max_number_of_pages is not None:
+            self.max_job_pages_to_scrape = max_number_of_pages
+
         self.load_job_search_page()
         # Fill in details here
 
-        keyword_search_box = self.driver.find_element_by_css_selector('input[id*="jobs-search-box-keyword"]')
-        keyword_search_box.send_keys(description)
+        if description is not None:
+            keyword_search_box = self.driver.find_element_by_css_selector('input[id*="jobs-search-box-keyword"]')
+            keyword_search_box.send_keys(description)
         if location is not None:
             location_search_box = self.driver.find_element_by_css_selector('input[id*="jobs-search-box-location"]')
             location_search_box.clear()
@@ -65,14 +73,13 @@ class JobScraper(Scraper):
                 self.wait_for_el('li legend[aria-label="Filter by: Experience Level"] + ol li.search-s-facet-value')
                 experience_level_list = self.wait_for_el('li legend[aria-label="Filter by: Experience Level"] + ol')
             except:
-                print('ERROR: could not find experience list element')
+                pass
 
             if experience_level_list is not None:
                 level_elems = experience_level_list.find_elements_by_css_selector('li.search-s-facet-value')
                 for level_elem in level_elems:
                     level_text = level_elem.find_element_by_css_selector('span.search-s-facet-value__name').get_attribute('innerHTML')
                     if experience_level.value in level_text:
-                        print('clicked: {}'.format(experience_level.value))
                         level_elem.click()
 
         # Setting the job type
@@ -83,14 +90,13 @@ class JobScraper(Scraper):
                 self.wait_for_el('li legend[aria-label="Filter by: Job Type"] + ol li.search-s-facet-value')
                 job_type_list = self.wait_for_el('li legend[aria-label="Filter by: Job Type"] + ol')
             except:
-                print('ERROR: could not find job type list element')
+                pass
 
             if experience_level is not None and job_type_list is not None:
                 job_type_elems = job_type_list.find_elements_by_css_selector('li.search-s-facet-value')
                 for job_type_elem in job_type_elems:
                     level_text = job_type_elem.find_element_by_css_selector('span.search-s-facet-value__name').get_attribute('innerHTML')
                     if job_type.value in level_text:
-                        print('clicked: {}'.format(job_type.value))
                         job_type_elem.click()
 
         # Setting the Date posted
@@ -101,14 +107,13 @@ class JobScraper(Scraper):
                 self.wait_for_el('li legend[aria-label="Filter by: Date Posted"] + ol li.search-s-facet-value')
                 date_posted_list = self.wait_for_el('li legend[aria-label="Filter by: Date Posted"] + ol')
             except:
-                print('ERROR: could not find job type list element')
+                pass
 
             if experience_level is not None and date_posted_list is not None:
                 date_posted_elems = date_posted_list.find_elements_by_css_selector('li.search-s-facet-value')
                 for date_posted_elem in date_posted_elems:
                     level_text = date_posted_elem.find_element_by_css_selector('span.search-s-facet-value__name').get_attribute('innerHTML')
                     if date_posted.value in level_text:
-                        print('clicked: {}'.format(date_posted.value))
                         date_posted_elem.click()
 
         try:

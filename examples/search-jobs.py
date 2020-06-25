@@ -12,8 +12,8 @@ options.add_argument("--window-size=1600,1000")
 
 with JobScraper(driver_options={'options':options}) as scraper:
     job_list = scraper.search_jobs_scrape(
-        description='embedded',
-        location='oost vlaanderen',
+        description='devops',
+        location='belgium',
         experience_level=ExperienceLevel.ENTRY_LEVEL,
         job_type=JobType.FULLTIME,
         date_posted=DatePosted.PAST_WEEK,

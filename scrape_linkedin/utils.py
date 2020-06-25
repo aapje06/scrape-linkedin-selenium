@@ -83,7 +83,7 @@ def cleanup_text(text):
     res = re.sub(r' {2,}', ' ',
         text \
         .replace('... see more', '') \
-        .replace('    see less', '') \
+        .replace('   see less', '') \
         .replace('\n', ' ') \
         .replace('\\n', ' ') \
         .strip()

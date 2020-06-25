@@ -117,7 +117,7 @@ class CompanyScraper(Scraper):
             return output
 
         except Exception as ex:
-            print("Error while scraping jobs from company: [{}]\n{}".format(self.url, ex))
+            # print("Error while scraping jobs from company: [{}]\n{}".format(self.url, ex))
             return ''
 
 
@@ -132,7 +132,7 @@ class CompanyScraper(Scraper):
             self.wait_for_el('div.artdeco-carousel__item-container')
             return self.driver.find_element_by_css_selector('.org-people__insights-container').get_attribute('outerHTML')
         except Exception as ex:
-            print('Error: Could not get people html:\n{}'.format(ex))
+            # print('Error: Could not get people html:\n{}'.format(ex))
             return ''
 
     def get_insights(self):
