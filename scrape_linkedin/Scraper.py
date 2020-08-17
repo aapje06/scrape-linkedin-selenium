@@ -42,6 +42,7 @@ class Scraper(object):
         self.timeout = timeout
         self.driver.get('http://www.linkedin.com')
         # self.driver.set_window_size(1920, 1080)
+        self.wait_for_el('icon.nav-logo')
 
         if 'LI_EMAIL' in environ and 'LI_PASS' in environ:
             self.login(environ['LI_EMAIL'], environ['LI_PASS'])
