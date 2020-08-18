@@ -97,6 +97,7 @@ class ProfileScraper(Scraper):
                 EC.presence_of_element_located(
                     (By.CSS_SELECTOR, self.ERROR_SELECTOR))
             ))
+            self.wait_for_el(".search-results-page")
         except TimeoutException as e:
             raise ValueError(
                 """Took too long to load profile.  Common problems/solutions:
