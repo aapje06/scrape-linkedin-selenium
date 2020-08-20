@@ -122,7 +122,6 @@ class Scraper(object):
             # Scroll down to bottom
             new_height = self.driver.execute_script(
                 "return Math.min({}, document.body.scrollHeight)".format(current_height + self.scroll_increment))
-            log.info("scroll_to_bottom - New height is set to: {}".format(new_height))
             if (new_height == current_height or new_height > self.scroll_limit):
                 break
             self.driver.execute_script(
