@@ -22,7 +22,7 @@ class Scraper(object):
         - timeout {float}: time to wait for page to load first batch of async content
     """
 
-    def __init__(self, cookie=None, scraperInstance=None, driver=selenium.webdriver.Chrome, driver_options={}, scroll_pause=0.1, scroll_increment=300, timeout=10):
+    def __init__(self, cookie=None, scraperInstance=None, driver=selenium.webdriver.Chrome, driver_options={}, scroll_pause=0.1, scroll_increment=300, timeout=10, scroll_limit=15000):
         if type(self) is Scraper:
             raise Exception(
                 'Scraper is an abstract class and cannot be instantiated directly')
@@ -39,6 +39,7 @@ class Scraper(object):
         self.driver = driver(**driver_options)
         self.scroll_pause = scroll_pause
         self.scroll_increment = scroll_increment
+        self.scroll_limit = scroll_limit
         self.timeout = timeout
         self.driver.get('http://www.linkedin.com')
         # self.driver.set_window_size(1920, 1080)
@@ -81,7 +82,7 @@ class Scraper(object):
             # Scroll down to bottom
             new_height = self.driver.execute_script(
                 "return Math.min({}, arguments[0].scrollHeight)".format(current_height + self.scroll_increment), element)
-            if (new_height == current_height):
+            if (new_height == current_height or new_height > self.scroll_limit):
                 break
             self.driver.execute_script(
                 "arguments[0].scrollTo(0, Math.min({}, arguments[0].scrollHeight));".format(new_height), element)
@@ -121,7 +122,8 @@ class Scraper(object):
             # Scroll down to bottom
             new_height = self.driver.execute_script(
                 "return Math.min({}, document.body.scrollHeight)".format(current_height + self.scroll_increment))
-            if (new_height == current_height):
+            log.info("scroll_to_bottom - New height is set to: {}".format(new_height))
+            if (new_height == current_height or new_height > self.scroll_limit):
                 break
             self.driver.execute_script(
                 "window.scrollTo(0, Math.min({}, document.body.scrollHeight));".format(new_height))
